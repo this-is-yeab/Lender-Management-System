@@ -1,4 +1,4 @@
-ocal Lender Management System (Mini Bank)
+Local Lender Management System (Mini Bank)
 
 Project Architecture and Group Modules
 
