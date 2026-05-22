@@ -1,5 +1,6 @@
-package com.customerregistration
 import java.util.ArrayList;
+import java.util.Scanner;
+import java.util.UUID;
 
 public class CustomerInformation {
 
@@ -24,16 +25,23 @@ public class CustomerInformation {
     public static final String INACTIVE = "Inactive";
     public static final String SUSPENDED = "Suspended";
     
+    public static final String PENDING = "Pending";
+    public static final String COMPLETE = "Complete";
+    
     // =============================
     // FIELDS
     // =============================
     
     private String customerName;
     private String contactNumber;
+    private String address;
     private String email;
-    private String collateralDescription;
+    private String mortgageType;
+    private double estimatedValue;
     private String registrationID;
     private String accountNumber;
+    private String currentStep;
+    private boolean documentUploaded;
     private int age;
     private double accountBalance;
     private double monthlyTransactionVolume;
@@ -49,16 +57,21 @@ public class CustomerInformation {
     // CONSTRUCTOR
     // =============================
     
-    public CustomerInformation(String customerName, String contactNumber, String email,
-                               String collateralDescription, String registrationID,
-                               String accountNumber, int age, double accountBalance,
-                               double monthlyTransactionVolume, boolean isGroup, boolean isCompany) {
+    public CustomerInformation(String customerName, String contactNumber, String address,
+                               String email, String mortgageType, double estimatedValue,
+                               String registrationID, String currentStep, boolean documentUploaded,
+                               int age, double accountBalance, double monthlyTransactionVolume,
+                               boolean isGroup, boolean isCompany) {
         this.customerName = customerName;
         this.contactNumber = contactNumber;
+        this.address = address;
         this.email = email;
-        this.collateralDescription = collateralDescription;
+        this.mortgageType = mortgageType;
+        this.estimatedValue = estimatedValue;
         this.registrationID = registrationID;
-        this.accountNumber = accountNumber;
+        this.accountNumber = "ACC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        this.currentStep = currentStep;
+        this.documentUploaded = documentUploaded;
         this.age = age;
         this.accountBalance = accountBalance;
         this.monthlyTransactionVolume = monthlyTransactionVolume;
@@ -113,11 +126,21 @@ public class CustomerInformation {
     // =============================
     
     public String getCustomerName() { return customerName; }
+    public String[] getCustomerNames() { return new String[]{customerName}; }
     public String getContactNumber() { return contactNumber; }
+    public String getAddress() { return address; }
     public String getEmail() { return email; }
-    public String getCollateralDescription() { return collateralDescription; }
+    public String getMortgageType() { return mortgageType; }
+    public double getEstimatedValue() { return estimatedValue; }
     public String getRegistrationID() { return registrationID; }
     public String getAccountNumber() { return accountNumber; }
+    public String getCurrentStep() { return currentStep; }
+    public boolean isDocumentUploaded() { return documentUploaded; }
+    public int getAge() { return age; }
+    public double getBalance() { return accountBalance; }
+    public double getVolume() { return monthlyTransactionVolume; }
+    public boolean isGroup() { return isGroup; }
+    public boolean isCompany() { return isCompany; }
     public String getAccountTier() { return accountTier; }
     public String getInstitutionalStatus() { return institutionalStatus; }
     public String getAgeGroup() { return ageGroup; }
@@ -127,14 +150,23 @@ public class CustomerInformation {
     public String getAllClassifications() {
         return "Name: " + customerName +
                "\nContact: " + contactNumber +
+               "\nAddress: " + address +
                "\nEmail: " + email +
-               "\nCollateral: " + collateralDescription +
+               "\nMortgage Type: " + mortgageType +
+               "\nEstimated Value: $" + estimatedValue +
                "\nRegistration ID: " + registrationID +
                "\nAccount: " + accountNumber +
+               "\nAge: " + age +
+               "\nBalance: $" + accountBalance +
+               "\nMonthly Volume: $" + monthlyTransactionVolume +
+               "\nIs Group: " + isGroup +
+               "\nIs Company: " + isCompany +
                "\nTier: " + accountTier +
                "\nInstitutional Status: " + institutionalStatus +
                "\nAge Group: " + ageGroup +
-               "\nCustomer Status: " + customerStatus;
+               "\nCustomer Status: " + customerStatus +
+               "\nCurrent Step: " + currentStep +
+               "\nDocs Uploaded: " + documentUploaded;
     }
     
     // =============================
@@ -172,12 +204,16 @@ public class CustomerInformation {
         System.out.println("Registration ID: " + registrationID);
         System.out.println("Account: " + accountNumber);
         System.out.println("Contact: " + contactNumber);
+        System.out.println("Address: " + address);
         System.out.println("Email: " + email);
-        System.out.println("Collateral: " + collateralDescription);
+        System.out.println("Mortgage: " + mortgageType);
+        System.out.println("Est. Value: $" + estimatedValue);
         System.out.println("Status: " + customerStatus);
         System.out.println("Tier: " + accountTier);
         System.out.println("Institutional Status: " + institutionalStatus);
         System.out.println("Age Group: " + ageGroup);
+        System.out.println("Current Step: " + currentStep);
+        System.out.println("Docs Uploaded: " + documentUploaded);
     }
     
     public void displayTransactions() {
@@ -202,6 +238,91 @@ public class CustomerInformation {
     public void updateStatus(String newStatus) {
         if (newStatus.equals(ACTIVE) || newStatus.equals(INACTIVE) || newStatus.equals(SUSPENDED)) {
             this.customerStatus = newStatus;
+        }
+    }
+    
+    // =============================
+    // MAIN
+    // =============================
+    
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        CustomerRegistration reg = new CustomerRegistration();
+        boolean running = true;
+        
+        System.out.println("=== Customer Registration System ===");
+        
+        while (running) {
+            System.out.println("\n--- Enter Customer Details ---");
+            
+            System.out.print("Full Name: ");
+            String name = scanner.nextLine();
+            
+            System.out.print("Contact Number: ");
+            String contact = scanner.nextLine();
+            
+            System.out.print("Address: ");
+            String address = scanner.nextLine();
+            
+            System.out.print("Email: ");
+            String email = scanner.nextLine();
+            
+            System.out.print("Mortgage Type: ");
+            String mortgage = scanner.nextLine();
+            
+            System.out.print("Estimated Value: $");
+            double estValue = Double.parseDouble(scanner.nextLine());
+            
+            System.out.print("Age: ");
+            int age = Integer.parseInt(scanner.nextLine());
+            
+            System.out.print("Account Balance: $");
+            double balance = Double.parseDouble(scanner.nextLine());
+            
+            System.out.print("Monthly Transaction Volume: $");
+            double volume = Double.parseDouble(scanner.nextLine());
+            
+            System.out.print("Is this a Group? (yes/no): ");
+            boolean isGroup = scanner.nextLine().trim().equalsIgnoreCase("yes");
+            
+            System.out.print("Is this a Company? (yes/no): ");
+            boolean isCompany = scanner.nextLine().trim().equalsIgnoreCase("yes");
+            
+            System.out.print("Documents Uploaded? (yes/no): ");
+            boolean docs = scanner.nextLine().trim().equalsIgnoreCase("yes");
+            
+            String regID = "REG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+            
+            String step;
+            if (docs) {
+                step = COMPLETE;
+            } else {
+                step = PENDING;
+            }
+            
+            CustomerInformation customer = new CustomerInformation(
+                name, contact, address, email, mortgage, estValue,
+                regID, step, docs,
+                age, balance, volume,
+                isGroup, isCompany
+            );
+            
+            reg.registerCustomer(customer);
+            
+            System.out.println("\n=== Customer Registered Successfully ===");
+            customer.displayCustomerStatus();
+            
+            System.out.print("\nRegister another? (yes/no): ");
+            String choice = scanner.nextLine().trim().toLowerCase();
+            if (choice.equals("no") || choice.equals("n")) {
+                running = false;
+            }
+        }
+        
+        System.out.println("\n=== All Registered Customers ===");
+        for (CustomerInformation c : reg.getCustomerList()) {
+            System.out.println(c.getAllClassifications());
+            System.out.println("---");
         }
     }
 }
