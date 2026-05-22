@@ -1,27 +1,18 @@
 =========================================
-Registration ID: REG-E79A9347
+Registration ID: REG-7314
+Account Number:  ACC-389344
 Name:            Yeabsira Teshome
-Contact:         
-Email:           
-Collateral:      PentHouse
-Status:          Complete
-=========================================
-
-=========================================
-Registration ID: REG-7F1F1435
-Name:            Abebe nega
-Contact:         091235679
-Email:           abbe42@gmail.com
-Collateral:      
-Status:          Complete
-=========================================
-
-=========================================
-Registration ID: REG-0EE18B98
-Name:            Yabu
-Contact:         098765321
-Email:           yaba@gmail
-Collateral:      car
-Status:          Complete
+Age:             20
+Balance:         $1000.0
+Volume:          0.0
+Is Group:        true
+Is Company:      false
+Contact:         0970109478
+Email:           yeabsirateshome49@gmail.com
+Address:         AddsAbaba
+Mortgage Type:   Pent House
+Est. Value:      $0.0
+Current Step:    Step 1
+Docs Uploaded:   true
 =========================================
 
