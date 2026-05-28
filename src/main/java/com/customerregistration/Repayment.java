@@ -1,5 +1,8 @@
 package com.customerregistration;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+
 public class Repayment {
 
     //  Status constants 
@@ -29,6 +32,18 @@ public class Repayment {
      */
     public Repayment(String repaymentId, String loanId, String customerName,
                      String scheduledDate, double scheduledAmount, double penaltyRate) {
+        if (isBlank(repaymentId) || isBlank(loanId) || isBlank(customerName) || isBlank(scheduledDate)) {
+            throw new IllegalArgumentException("Repayment ID, loan ID, customer name and scheduled date are required.");
+        }
+        if (scheduledAmount <= 0) {
+            throw new IllegalArgumentException("Scheduled amount must be greater than 0.");
+        }
+        if (penaltyRate < 0) {
+            throw new IllegalArgumentException("Penalty rate cannot be negative.");
+        }
+
+        validateIsoDate(scheduledDate, "Scheduled date");
+
         this.repaymentId     = repaymentId;
         this.loanId          = loanId;
         this.customerName    = customerName;
@@ -55,6 +70,14 @@ public class Repayment {
      * Date comparison works correctly for yyyy-MM-dd format (ISO).
      */
     public void makePayment(double amount, String paymentDate) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("Payment amount cannot be negative.");
+        }
+        if (isBlank(paymentDate)) {
+            throw new IllegalArgumentException("Payment date is required.");
+        }
+        validateIsoDate(paymentDate, "Payment date");
+
         this.amountPaid  = amount;
         this.paymentDate = paymentDate;
 
@@ -66,9 +89,12 @@ public class Repayment {
         if (this.amountPaid >= this.totalAmountDue) {
             this.repaymentStatus = COMPLETED;
         } else {
-            boolean isLate = (paymentDate != null && paymentDate.compareTo(scheduledDate) > 0);
+            boolean isLate = isPaymentLate(paymentDate, scheduledDate);
             if (isLate) {
                 this.repaymentStatus = OVERDUE;
+            } else if (this.amountPaid <= 0) {
+                // No payment before due date should remain pending.
+                this.repaymentStatus = PENDING;
             } else {
                 this.repaymentStatus = PARTIAL;
             }
@@ -81,7 +107,7 @@ public class Repayment {
      * penaltyAmount = scheduledAmount * penaltyRate (applied when late or partial).
      */
     private double calculatePenalty() {
-        boolean isLate = (paymentDate != null && paymentDate.compareTo(scheduledDate) > 0);
+        boolean isLate = isPaymentLate(paymentDate, scheduledDate);
         boolean isPartialOrLate = isLate || (amountPaid > 0 && amountPaid < scheduledAmount);
 
         if (isPartialOrLate) {
@@ -98,6 +124,51 @@ public class Repayment {
     private double calculateTotalAmountDue() {
         this.totalAmountDue = scheduledAmount + penaltyAmount;
         return this.totalAmountDue;
+    }
+
+    /**
+     * Previews the penalty for user input before payment is posted.
+     */
+    public double previewPenalty(double amount, String paymentDate) {
+        if (amount < 0 || isBlank(paymentDate)) {
+            return 0.0;
+        }
+        try {
+            validateIsoDate(paymentDate, "Payment date");
+            boolean isLate = isPaymentLate(paymentDate, scheduledDate);
+            boolean isPartialOrLate = isLate || (amount > 0 && amount < scheduledAmount);
+            return isPartialOrLate ? scheduledAmount * penaltyRate : 0.0;
+        } catch (IllegalArgumentException ex) {
+            return 0.0;
+        }
+    }
+
+    /**
+     * Previews the total amount due before payment is posted.
+     */
+    public double previewTotalDue(double amount, String paymentDate) {
+        return scheduledAmount + previewPenalty(amount, paymentDate);
+    }
+
+    private static boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private static void validateIsoDate(String dateValue, String fieldName) {
+        try {
+            LocalDate.parse(dateValue);
+        } catch (DateTimeParseException ex) {
+            throw new IllegalArgumentException(fieldName + " must be in yyyy-MM-dd format.");
+        }
+    }
+
+    private static boolean isPaymentLate(String paymentDate, String scheduledDate) {
+        if (paymentDate == null || scheduledDate == null) {
+            return false;
+        }
+        LocalDate payment = LocalDate.parse(paymentDate);
+        LocalDate scheduled = LocalDate.parse(scheduledDate);
+        return payment.isAfter(scheduled);
     }
 
     //  Getters 
