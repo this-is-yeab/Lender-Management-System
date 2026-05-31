@@ -1,7 +1,8 @@
 package com.customerregistration;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.UUID;
+import javax.swing.*;
+import java.awt.*;
 
 public class CustomerInformation {
 
@@ -218,53 +219,95 @@ public class CustomerInformation {
             this.customerStatus = newStatus;
         }
     }
-    
-    // Main
+
+    // Main - GUI
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
         CustomerRegistration reg = new CustomerRegistration();
-        boolean running = true;
         
-        System.out.println("=== Customer Registration System ===");
+        JFrame frame = new JFrame("Customer Registration System");
+        frame.setSize(500, 700);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setLayout(new BorderLayout());
         
-        while (running) {
-            System.out.println("\n--- Enter Customer Details ---");
-            
-            System.out.print("Full Name: ");
-            String name = scanner.nextLine();
-            
-            System.out.print("Contact Number: ");
-            String contact = scanner.nextLine();
-            
-            System.out.print("Address: ");
-            String address = scanner.nextLine();
-            
-            System.out.print("Email: ");
-            String email = scanner.nextLine();
-            
-            System.out.print("Mortgage Type: ");
-            String mortgage = scanner.nextLine();
-            
-            System.out.print("Estimated Value: $");
-            double estValue = Double.parseDouble(scanner.nextLine());
-            
-            System.out.print("Age: ");
-            int age = Integer.parseInt(scanner.nextLine());
-            
-            System.out.print("Account Balance: $");
-            double balance = Double.parseDouble(scanner.nextLine());
-            
-            System.out.print("Monthly Transaction Volume: $");
-            double volume = Double.parseDouble(scanner.nextLine());
-            
-            System.out.print("Is this a Group? (yes/no): ");
-            boolean isGroup = scanner.nextLine().trim().equalsIgnoreCase("yes");
-            
-            System.out.print("Is this a Company? (yes/no): ");
-            boolean isCompany = scanner.nextLine().trim().equalsIgnoreCase("yes");
-            
-            System.out.print("Documents Uploaded? (yes/no): ");
-            boolean docs = scanner.nextLine().trim().equalsIgnoreCase("yes");
+        JPanel inputPanel = new JPanel(new GridLayout(14, 2, 5, 5));
+        
+        inputPanel.add(new JLabel("Full Name:"));
+        JTextField nameField = new JTextField();
+        inputPanel.add(nameField);
+        
+        inputPanel.add(new JLabel("Contact Number:"));
+        JTextField contactField = new JTextField();
+        inputPanel.add(contactField);
+        
+        inputPanel.add(new JLabel("Address:"));
+        JTextField addressField = new JTextField();
+        inputPanel.add(addressField);
+        
+        inputPanel.add(new JLabel("Email:"));
+        JTextField emailField = new JTextField();
+        inputPanel.add(emailField);
+        
+        inputPanel.add(new JLabel("Mortgage Type:"));
+        JTextField mortgageField = new JTextField();
+        inputPanel.add(mortgageField);
+        
+        inputPanel.add(new JLabel("Estimated Value:"));
+        JTextField estValueField = new JTextField();
+        inputPanel.add(estValueField);
+        
+        inputPanel.add(new JLabel("Age:"));
+        JTextField ageField = new JTextField();
+        inputPanel.add(ageField);
+        
+        inputPanel.add(new JLabel("Account Balance:"));
+        JTextField balanceField = new JTextField();
+        inputPanel.add(balanceField);
+        
+        inputPanel.add(new JLabel("Monthly Volume:"));
+        JTextField volumeField = new JTextField();
+        inputPanel.add(volumeField);
+        
+        inputPanel.add(new JLabel("Is Group?"));
+        JCheckBox groupBox = new JCheckBox();
+        inputPanel.add(groupBox);
+        
+        inputPanel.add(new JLabel("Is Company?"));
+        JCheckBox companyBox = new JCheckBox();
+        inputPanel.add(companyBox);
+        
+        inputPanel.add(new JLabel("Docs Uploaded?"));
+        JCheckBox docsBox = new JCheckBox();
+        inputPanel.add(docsBox);
+        
+        JButton registerButton = new JButton("Register Customer");
+        JButton viewAllButton = new JButton("View All Customers");
+        JButton clearButton = new JButton("Clear");
+        
+        inputPanel.add(registerButton);
+        inputPanel.add(viewAllButton);
+        inputPanel.add(clearButton);
+        inputPanel.add(new JLabel());
+        
+        JTextArea outputArea = new JTextArea(10, 40);
+        outputArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(outputArea);
+        
+        frame.add(inputPanel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+        
+        registerButton.addActionListener(e -> {
+            String name = nameField.getText();
+            String contact = contactField.getText();
+            String address = addressField.getText();
+            String email = emailField.getText();
+            String mortgage = mortgageField.getText();
+            double estValue = Double.parseDouble(estValueField.getText());
+            int age = Integer.parseInt(ageField.getText());
+            double balance = Double.parseDouble(balanceField.getText());
+            double volume = Double.parseDouble(volumeField.getText());
+            boolean isGroup = groupBox.isSelected();
+            boolean isCompany = companyBox.isSelected();
+            boolean docs = docsBox.isSelected();
             
             String regID = "REG-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
             
@@ -284,20 +327,34 @@ public class CustomerInformation {
             
             reg.registerCustomer(customer);
             
-            System.out.println("\n=== Customer Registered Successfully ===");
-            System.out.println(customer.getAllClassifications());
-            
-            System.out.print("\nRegister another? (yes/no): ");
-            String choice = scanner.nextLine().trim().toLowerCase();
-            if (choice.equals("no") || choice.equals("n")) {
-                running = false;
-            }
-        }
+            outputArea.setText("Customer Registered Successfully!\n\n");
+            outputArea.append(customer.getAllClassifications());
+        });
         
-        System.out.println("\n=== All Registered Customers ===");
-        for (CustomerInformation c : reg.getCustomerList()) {
-            System.out.println(c.getAllClassifications());
-            System.out.println("---");
-        }
+        viewAllButton.addActionListener(e -> {
+            outputArea.setText("=== All Registered Customers ===\n\n");
+            for (CustomerInformation c : reg.getCustomerList()) {
+                outputArea.append(c.getAllClassifications());
+                outputArea.append("\n---\n\n");
+            }
+        });
+        
+        clearButton.addActionListener(e -> {
+            nameField.setText("");
+            contactField.setText("");
+            addressField.setText("");
+            emailField.setText("");
+            mortgageField.setText("");
+            estValueField.setText("");
+            ageField.setText("");
+            balanceField.setText("");
+            volumeField.setText("");
+            groupBox.setSelected(false);
+            companyBox.setSelected(false);
+            docsBox.setSelected(false);
+            outputArea.setText("");
+        });
+        
+        frame.setVisible(true);
     }
-}
+    }
