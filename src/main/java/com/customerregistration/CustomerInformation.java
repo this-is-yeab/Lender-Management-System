@@ -1,5 +1,4 @@
 package com.customerregistration;
-
 import java.util.ArrayList;
 import java.util.UUID;
 import javax.swing.*;
@@ -358,4 +357,4 @@ public class CustomerInformation {
         
         frame.setVisible(true);
     }
-}
+    }
