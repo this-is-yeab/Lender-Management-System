@@ -2,28 +2,29 @@ package com.customerregistration;
 
 public class CustomerApproval {
 
-    // System-defined approval status constants
+    // ===== Public Static Final Constants (System Flags) =====
     public static final String APPROVED = "approved";
     public static final String REJECTED = "rejected";
     public static final String CONDITIONAL = "conditional approval";
 
-    // Customer domain model instance
+    // ===== Private Fields =====
     private CustomerInformation customer;
-
-    // Internal tracking variables for evaluation results
     private String approvalStatus;
     private String approvalReason;
 
-    // Constructor: initializes evaluation pipeline
+    // ===== Constructor =====
     public CustomerApproval(CustomerInformation customer) {
         this.customer = customer;
+        this.approvalStatus = "";
+        this.approvalReason = "";
     }
 
-    // Core processing logic for approval evaluation
+    // ===== Core Evaluation =====
     public String evaluateApproval() {
+
         if (!checkCustomerStatus()) {
             approvalStatus = REJECTED;
-            approvalReason = "Inactive customer account";
+            approvalReason = "Inactive customer";
             return approvalStatus;
         }
 
@@ -33,83 +34,87 @@ public class CustomerApproval {
             return approvalStatus;
         }
 
-        if (checkAccountTier()) {
+        String tier = customer.getAccountTier();
+        if (tier.equals(CustomerInformation.PLATINUM) || tier.equals(CustomerInformation.PREMIUM)) {
             approvalStatus = APPROVED;
-            approvalReason = "High tier customer";
+            approvalReason = "Meets all requirements";
+        } else if (tier.equals(CustomerInformation.GOLD)) {
+            approvalStatus = APPROVED;
+            approvalReason = "Standard approval";
         } else {
             approvalStatus = CONDITIONAL;
-            approvalReason = "Requires further review";
+            approvalReason = "Normal tier - conditional approval";
         }
 
         return approvalStatus;
     }
 
-    // Validation boundary: checks age eligibility matching CustomerInformation constants
+    // ===== Private Validation Methods =====
     private boolean checkAgeEligibility() {
-        if (customer == null) return false;
         String ageGroup = customer.getAgeGroup();
-        return !CustomerInformation.UNDER_18.equals(ageGroup);
+        return !ageGroup.equals(CustomerInformation.UNDER_18) && 
+               !ageGroup.equals(CustomerInformation.AGE_60_PLUS);
     }
 
-    // Business rule implementation: evaluates eligibility via account tier constants
-    private boolean checkAccountTier() {
-        if (customer == null) return false;
-        String tier = customer.getAccountTier();
-        return CustomerInformation.PLATINUM.equals(tier) || CustomerInformation.PREMIUM.equals(tier);
-    }
-
-    // Lifecycle validation state inspector
     private boolean checkCustomerStatus() {
-        if (customer == null) return false;
-        return customer.isActive(); 
+        return customer.isActive();
     }
 
-    // Encapsulated getter for approval status
+    // ===== Getters =====
     public String getApprovalStatus() {
         return approvalStatus;
     }
 
-    // Encapsulated getter for approval reason
     public String getApprovalReason() {
         return approvalReason;
     }
 
-    // Presentation method for displaying results
+    // ===== Display Method =====
     public void displayApprovalResult() {
-        System.out.println("Approval Status: " + approvalStatus);
+        System.out.println("Status: " + approvalStatus);
         System.out.println("Reason: " + approvalReason);
     }
 
-    // Administrative credential verification
+    // ===== Manager Verification =====
     private boolean verifyManagerCredentials(String token) {
         return token != null && token.equals("ADMIN123");
     }
 
-    // Secure data modification controller
+    // ===== Modify Customer Record =====
     public boolean modifyCustomerDataRecord(String token, String id, String field, String val) {
+
         if (!verifyManagerCredentials(token)) {
-            System.out.println("Access Denied");
             return false;
         }
 
-        System.out.println("Record updated: " + field + " -> " + val);
+        if (!customer.getId().equals(id)) {
+            return false;
+        }
+
+        try {
+            switch (field.toLowerCase()) {
+                case "name":
+                    customer.setName(val);
+                    break;
+                case "balance":
+                    customer.setBalance(Double.parseDouble(val));
+                    break;
+                case "age":
+                    customer.setAge(Integer.parseInt(val));
+                    break;
+                default:
+                    return false;
+            }
+        } catch (NumberFormatException ex) {
+            return false;
+        }
+
         writeAuditLogRecord(id, "Modified " + field);
         return true;
     }
 
-    // Status assignment engine based on account classification
-    public String evaluateAndAssignSocialStatus(String token, String id) {
-        if (!verifyManagerCredentials(token)) {
-            return "Unauthorized";
-        }
-
-        String tier = customer.getAccountTier();
-        writeAuditLogRecord(id, "Checked social status");
-        return tier;
-    }
-
-    // Compliance logging mechanism
+    // ===== Audit Log =====
     private void writeAuditLogRecord(String mgrId, String action) {
-        System.out.println("LOG: Manager " + mgrId + " performed -> " + action);
+        System.out.println("[AUDIT] Manager: " + mgrId + " | Action: " + action);
     }
 }
