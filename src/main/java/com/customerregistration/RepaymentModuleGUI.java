@@ -1,31 +1,20 @@
 package com.customerregistration;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
-import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.GridLayout;
+import java.awt.*;
+import java.io.*;
 import java.time.LocalDate;
-import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 
 public class RepaymentModuleGUI extends JFrame {
+    private JComboBox<String> customerLookupCombo;
+    private final ArrayList<String> dbCustomerIds = new ArrayList<>();
+    private final ArrayList<String> dbCustomerNames = new ArrayList<>();
+    private final ArrayList<Double> dbCustomerBalances = new ArrayList<>();
+
     private final JTextField repaymentIdField = new JTextField();
     private final JTextField loanIdField = new JTextField();
     private final JTextField customerNameField = new JTextField();
@@ -40,6 +29,18 @@ public class RepaymentModuleGUI extends JFrame {
     private final JTextField statusField = new JTextField();
 
     private final JTextArea outputArea = new JTextArea();
+    private Repayment repayment;
+
+    public RepaymentModuleGUI() {
+        setTitle("Loan Repayment Processing Terminal");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(900, 600);
+        setMinimumSize(new Dimension(800, 500));
+        setLocationRelativeTo(null);
+
+        initComponents();
+        loadActiveDatabaseProfiles();
+    }
 
     private Repayment repayment;
 
@@ -258,7 +259,6 @@ public class RepaymentModuleGUI extends JFrame {
         } catch (Exception ex) {
             showError("Unexpected error while posting payment: " + ex.getMessage());
         }
-    }
 
     private void showSummary() {
         try {
@@ -267,7 +267,6 @@ public class RepaymentModuleGUI extends JFrame {
         } catch (IllegalArgumentException ex) {
             showError(ex.getMessage());
         }
-    }
 
     private void recalculatePreview() {
         try {
@@ -375,11 +374,9 @@ public class RepaymentModuleGUI extends JFrame {
         }
     }
 
-    private String formatMoney(double amount) {
-        return String.format("%.2f", amount);
-    }
+    private String formatMoney(double amount) { return String.format("%.2f", amount); }
 
-    private void clearForm() {
+    private void clearFormFieldsView() {
         repayment = null;
         repaymentIdField.setText("");
         loanIdField.setText("");
@@ -392,11 +389,11 @@ public class RepaymentModuleGUI extends JFrame {
         penaltyAmountField.setText("");
         totalDueField.setText("");
         statusField.setText("");
-        outputArea.setText("Repayment summary will appear here.");
+        outputArea.setText("Select a customer from the dropdown top menu to initialize repayment settlement processing ledger streams.");
     }
 
     private void showError(String message) {
-        JOptionPane.showMessageDialog(this, message, "Validation/Error", JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(this, message, "System Ledger Processing Error", JOptionPane.ERROR_MESSAGE);
     }
 
     public static void main(String[] args) {

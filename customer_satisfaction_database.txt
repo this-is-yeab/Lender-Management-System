@@ -1,0 +1,10 @@
+Customer Review Record
+Name: Yeabsira Teshome
+Current Loan Balance: $1000.00
+Assessed Collateral Value: $1260000.00
+Customer Savings Balance: $0.00
+Satisfaction Score Index: 5
+General Feedback Text: Its very good
+Loan-to-Collateral Ratio: 0.001
+Financial Portfolio Risk Status: Healthy
+=========================================
