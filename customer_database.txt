@@ -1,0 +1,37 @@
+=========================================
+Registration ID: REG-8180
+Account Number:  ACC-F84706FB
+Name:            Yeabsira Teshome
+Age:             20
+Balance:         $350000.0
+Volume:          0.0
+Is Group:        false
+Is Company:      false
+Contact:         0970109478
+Email:           yeabsirateshome49@gmail.com
+Address:         Addis Ababa
+Mortgage Type:   RealEstate
+Est. Value:      $1260000.0
+Current Step:    Step 1
+Docs Uploaded:   true
+=========================================
+Registration ID: REG-6251
+Account Number:  ACC-A1C47046
+Name:            Abebe
+Age:             15
+Balance: $350000.00
+Volume:          0.0
+Is Group:        false
+Is Company:      false
+Contact:         23456789
+Email:           ihoiqhcjsbjkb
+Address:         sssss
+Mortgage Type:   Vehicle
+Est. Value:      $18081.0
+Current Step:    Step 1
+Docs Uploaded:   true
+Account Tier: Premium
+Approval Decision Status: Approved
+Assigned Credit Limit allowance: 1000000000
+Underwriter Analytics Reason: Age not eligible
+=========================================

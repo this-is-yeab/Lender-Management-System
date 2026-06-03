@@ -22,6 +22,8 @@ public class CustomerActivityHistory {
     public static final String LOAN_DISBURSEMENT = "Loan Disbursed";
     public static final String REPAYMENT = "Repayment Made";
     public static final String MISSED_PAYMENT = "Missed Payment";
+    public static final String REGISTRATION = "Registration";
+    public static final String MODIFICATION = "Modification";
 
     private String customerId;
     private String[] customerNames;
@@ -38,68 +40,120 @@ public class CustomerActivityHistory {
         return new CustomerActivityHistory(id, new String[]{name});
     }
 
-    public void addActivity(String type, String date, String time, String description) {
-        String entry = buildActivityEntry(type, date, time, description, "Processed");
-        activityList.add(entry);
-        saveActivityToDatabase(entry);
-    }
+    // SCANS DATABASE FOR THE REGISTRATION STATUS AND ASSIGNED ACTIVITIES
+    private void loadActivitiesFromDatabase() {
+        this.activityList.clear();
+        File dbFile = new File(DATABASE_FILE);
+        if (!dbFile.exists()) {
+            return;
+        }
 
-    private void saveActivityToDatabase(String entry) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(DATABASE_FILE, true))) {
-            writer.write("--- ACTIVITY_LOG ---" + "\n");
-            writer.write("CustID: " + this.customerId + "\n");
-            writer.write("LogPayload: " + entry + "\n");
-            writer.write("--------------------" + "\n");
+        try (BufferedReader reader = new BufferedReader(new FileReader(dbFile))) {
+            String line;
+            boolean matchFound = false;
+            String currentId = "";
+            String currentName = "";
+            String currentStep = "";
+
+            SimpleDateFormat defaultDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            SimpleDateFormat defaultTimeFormat = new SimpleDateFormat("HH:mm");
+            String currentDate = defaultDateFormat.format(new Date());
+            String currentTime = defaultTimeFormat.format(new Date());
+
+            while ((line = reader.readLine()) != null) {
+                line = line.trim();
+                if (line.startsWith("Registration ID:")) {
+                    currentId = line.replace("Registration ID:", "").trim();
+                    matchFound = currentId.equalsIgnoreCase(this.customerId);
+                } else if (line.startsWith("Name:")) {
+                    currentName = line.replace("Name:", "").trim();
+                } else if (line.startsWith("Current Step:")) {
+                    currentStep = line.replace("Current Step:", "").trim();
+                } else if (line.startsWith("=========================================")) {
+                    // When a customer block concludes, document their records if it matches
+                    if (matchFound && !currentId.isEmpty()) {
+                        // Generate automatic initial registration activity event log entry
+                        activityList.add(buildActivityEntry(REGISTRATION, currentDate, currentTime, 
+                                "Initial onboarding baseline profile recorded. Workspace Step: " + currentStep, "SUCCESS"));
+                    }
+                    // Reset single record scan space
+                    matchFound = false;
+                    currentId = "";
+                } else if (line.contains("|") && matchFound) {
+                    // Extract inline custom appended transaction activity logs matching current customer context
+                    activityList.add(line);
+                }
+            }
+            // Capture trailing unclosed text block data sets
+            if (matchFound && !currentId.isEmpty()) {
+                activityList.add(buildActivityEntry(REGISTRATION, currentDate, currentTime, 
+                        "Initial onboarding baseline profile recorded. Workspace Step: " + currentStep, "SUCCESS"));
+            }
         } catch (IOException e) {
-            System.out.println("Error writing history tracking entry log: " + e.getMessage());
+            System.out.println("Exception parsing text database files context tracking logs: " + e.getMessage());
         }
     }
 
-    private void loadActivitiesFromDatabase() {
-        File file = new File(DATABASE_FILE);
-        if (!file.exists()) return;
+    public void addActivity(String activityType, String date, String time, String description) {
+        String packedEntry = buildActivityEntry(activityType, date, time, description, "COMPLETED");
+        this.activityList.add(packedEntry);
+        writeActivityToDatabaseFile(packedEntry);
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    private void writeActivityToDatabaseFile(String packedEntry) {
+        File dbFile = new File(DATABASE_FILE);
+        if (!dbFile.exists()) return;
+
+        ArrayList<String> fileLinesBuffer = new ArrayList<>();
+        try (BufferedReader reader = new BufferedReader(new FileReader(dbFile))) {
             String line;
-            String currentRecordCustId = "";
             while ((line = reader.readLine()) != null) {
-                line = line.trim();
-                if (line.startsWith("CustID:")) {
-                    currentRecordCustId = line.replace("CustID:", "").trim();
-                } else if (line.startsWith("LogPayload:") && currentRecordCustId.equalsIgnoreCase(this.customerId)) {
-                    String payload = line.replace("LogPayload:", "").trim();
-                    activityList.add(payload);
+                fileLinesBuffer.add(line);
+            }
+        } catch (IOException e) {
+            return;
+        }
+
+        // Injects standard custom transaction lines right under the customer's ID block space
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(dbFile, false))) {
+            for (String fileLine : fileLinesBuffer) {
+                writer.write(fileLine);
+                writer.newLine();
+                if (fileLine.trim().startsWith("Registration ID:") && 
+                    fileLine.trim().replace("Registration ID:", "").trim().equalsIgnoreCase(this.customerId)) {
+                    writer.write(packedEntry);
+                    writer.newLine();
                 }
             }
         } catch (IOException e) {
-            System.out.println("Parsing error loading customer timeline activities: " + e.getMessage());
+            System.out.println("Exception writing activity: " + e.getMessage());
         }
     }
 
     public String getFormattedHistory() {
         if (activityList.isEmpty()) {
-            return "No registered logs found for customer matching structural profile reference identification: " + customerId;
+            return "No historical transaction history files logged for this system file key.";
         }
         StringBuilder sb = new StringBuilder();
-        ArrayList<String> sorted = sortChronologically(activityList);
-        for (String entry : sorted) {
-            sb.append(formatEntryForDisplay(entry)).append("\n");
+        ArrayList<String> chronologicallySorted = sortChronologically(activityList);
+        for (String record : chronologicallySorted) {
+            sb.append(formatEntryForDisplay(record)).append("\n");
         }
         return sb.toString();
     }
 
     public String getFormattedFilteredHistory(String type) {
         StringBuilder sb = new StringBuilder();
-        ArrayList<String> sorted = sortChronologically(activityList);
-        int matchedCount = 0;
-        for (String entry : sorted) {
-            if (entry.startsWith(type + "|")) {
-                sb.append(formatEntryForDisplay(entry)).append("\n");
-                matchedCount++;
+        ArrayList<String> chronologicallySorted = sortChronologically(activityList);
+        int hitsCount = 0;
+        for (String record : chronologicallySorted) {
+            if (record.startsWith(type)) {
+                sb.append(formatEntryForDisplay(record)).append("\n");
+                hitsCount++;
             }
         }
-        if (matchedCount == 0) {
-            return "No tracking metrics found matching structural category criteria: " + type;
+        if (hitsCount == 0) {
+            return "No specific entries found under transaction type: " + type;
         }
         return sb.toString();
     }
